@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const upload = require('../config/multer');
 const UserMotorista = require('../model/UserMotorista');
 const CheckTokenM = require('../middleware/checkToken');
 
@@ -107,13 +107,16 @@ router.get('/:id/infos', CheckTokenM, async (req, res) => {
 });
 
 // Registro de usuário
-router.post('/register', async (req, res) => {
+router.post('/register', upload.fields([
+    { name: 'cnh', maxCount: 1 },
+    { name: 'crlv', maxCount: 1 }
+]), async (req, res) => {
     const {
-        nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha, placa, cor, modelo, foto, cnh, crlv,
+        nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha, placa, cor, modelo,
     } = req.body;
 
-    // Validações
-    if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha || !placa || !cor || !modelo || !foto || !cnh || !crlv) {
+    // Validações (adaptar conforme necessário)
+    if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha || !placa || !cor || !modelo) {
         return res.status(422).json({ msg: 'Todos os campos são obrigatórios!' });
     }
 
@@ -131,11 +134,15 @@ router.post('/register', async (req, res) => {
         return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
     }
 
+    // Transformando o caminho do arquivo em URL
+    const cnhPath = req.files['cnh'][0].path;
+    const crlvPath = req.files['crlv'][0].path;
+
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
 
     const userMotorista = new UserMotorista({
-        nome, email, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha: passwordHash, placa, cor, modelo, foto, cnh, crlv,
+        nome, email, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha: passwordHash, placa, cor, modelo, cnh: cnhPath, crlv: crlvPath,
     });
 
     try {

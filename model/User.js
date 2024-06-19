@@ -3,19 +3,18 @@ const mongoose = require('mongoose');
 const UserSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     email: { type: String, required: true },
-    confirmarEmail: { type: String},
+    confirmarEmail: { type: String },
     empresa: { type: String, required: true },
     matricula: { type: String, required: true },
     setor: { type: String, required: true },
-    logradouro: { type: String, required: true},
+    logradouro: { type: String, required: true },
     numero: { type: String, required: true },
-    bairro: { type: String ,required: true },
+    bairro: { type: String, required: true },
     cidade: { type: String, required: true },
     uf: { type: String, required: true },
     senha: { type: String, required: true },
     confirmarSenha: { type: String },
-    docFoto: { type: String, required: true },
-   
+    docFoto: { type: String } // Campo para armazenar a URL da foto do documento
 });
 
 const User = mongoose.model('User', UserSchema);
