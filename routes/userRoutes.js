@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const upload = require('../config/multer');
 const User = require('../model/User');
 const checkToken = require('../middleware/checkToken');
 
@@ -87,46 +87,118 @@ router.get('/:id/setor', checkToken, async (req, res) => {
     }
 });
 
-// Registro de usuário
-router.post('/register', async (req, res) => {
+
+
+// Rota para atualizar a foto do documento
+router.put('/:id/docFoto', upload.single('docFoto'), async (req, res) => {
+    const id = req.params.id;
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ msg: 'ID inválido!' });
+    }
+
+    // Verifica se foi enviado um arquivo
+    if (!req.file) {
+        return res.status(400).json({ msg: 'Arquivo de foto do documento não enviado!' });
+    }
+
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ msg: 'Usuário não encontrado!' });
+        }
+
+        // Remove o arquivo antigo se existir
+        if (user.docFoto) {
+            fs.unlink(user.docFoto)
+                .catch(err => console.error("Erro ao excluir arquivo de foto do documento antigo:", err));
+        }
+
+        // Atualiza o caminho da foto do documento
+        user.docFoto = req.file.path;
+
+        // Salva as alterações no banco de dados
+        await user.save();
+
+        res.json({ msg: 'Foto do documento atualizada com sucesso!', userId: user._id });
+    } catch (error) {
+        console.error("Erro ao atualizar foto do documento:", error);
+        fs.unlink(req.file.path)
+            .catch(err => console.error("Erro ao excluir arquivo de foto do documento:", err));
+        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+    }
+});
+
+// Rota para registro de usuário
+router.post('/register', upload.single('docFoto'), async (req, res) => {
     const {
-        nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha, docFoto
+        nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha
     } = req.body;
 
+    // Verifica se foi enviado um arquivo
+    if (!req.file) {
+        return res.status(400).json({ msg: 'Arquivo de foto do documento não enviado!' });
+    }
+
     // Validações
-    if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha || !docFoto) {
+    if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha) {
+        fs.unlink(req.file.path, (err) => {
+            if (err) {
+                console.error("Erro ao excluir arquivo de foto do documento:", err);
+            }
+        });
         return res.status(422).json({ msg: 'Todos os campos são obrigatórios!' });
     }
 
     if (email !== confirmarEmail) {
+        fs.unlink(req.file.path, (err) => {
+            if (err) {
+                console.error("Erro ao excluir arquivo de foto do documento:", err);
+            }
+        });
         return res.status(422).json({ msg: 'Os emails não coincidem!' });
     }
 
     if (senha !== confirmarSenha) {
+        fs.unlink(req.file.path, (err) => {
+            if (err) {
+                console.error("Erro ao excluir arquivo de foto do documento:", err);
+            }
+        });
         return res.status(422).json({ msg: 'As senhas não coincidem!' });
     }
 
     try {
         const userExists = await User.findOne({ matricula: matricula });
         if (userExists) {
+            fs.unlink(req.file.path, (err) => {
+                if (err) {
+                    console.error("Erro ao excluir arquivo de foto do documento:", err);
+                }
+            });
             return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
         }
 
         const salt = await bcrypt.genSalt(12);
         const passwordHash = await bcrypt.hash(senha, salt);
 
-        const user = new User({
-            nome, email, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha: passwordHash, docFoto
+        const newUser = new User({
+            nome, email, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha: passwordHash,
+            docFoto: req.file.path // Salva o caminho do arquivo da foto do documento
         });
 
-        await user.save();
-        res.status(201).json({ msg: 'Usuário criado com sucesso!' });
+        await newUser.save();
+        res.status(201).json({ msg: 'Usuário criado com sucesso!', userId: newUser._id });
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);
+        fs.unlink(req.file.path, (err) => {
+            if (err) {
+                console.error("Erro ao excluir arquivo de foto do documento:", err);
+            }
+        });
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
-
 
 
 // Login do usuário

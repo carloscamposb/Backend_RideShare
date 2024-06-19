@@ -3,9 +3,10 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const upload = require('../config/multer');
-const UserMotorista = require('../model/UserMotorista');
-const CheckTokenM = require('../middleware/checkToken');
+const upload = require('../config/multer'); // Importando o multer configurado
+const UserMotorista = require('../model/UserMotorista'); // Importando o modelo de motorista
+const CheckTokenM = require('../middleware/checkToken'); // Middleware para verificar token JWT
+
 
 // Rota para obter dados do usuário
 router.get('/:id', CheckTokenM, async (req, res) => {
@@ -105,6 +106,83 @@ router.get('/:id/infos', CheckTokenM, async (req, res) => {
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
+
+
+// Rota para atualizar CNH do motorista
+router.put('/:id/cnh', CheckTokenM, upload.single('cnh'), async (req, res) => {
+    const id = req.params.id;
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ msg: 'ID inválido!' });
+    }
+
+    // Verifica se foi enviado um arquivo
+    if (!req.file) {
+        return res.status(400).json({ msg: 'Arquivo de CNH não enviado!' });
+    }
+
+    try {
+        const motorista = await UserMotorista.findById(id);
+        if (!motorista) {
+            return res.status(404).json({ msg: 'Motorista não encontrado!' });
+        }
+
+        // Remove o arquivo antigo de CNH se existir
+        if (motorista.cnh) {
+            // Lógica para deletar o arquivo antigo, se necessário
+        }
+
+        // Atualiza o caminho da CNH no banco de dados
+        motorista.cnh = req.file.path;
+
+        // Salva as alterações no banco de dados
+        await motorista.save();
+
+        res.json({ msg: 'CNH atualizada com sucesso!', motorista });
+    } catch (error) {
+        console.error("Erro ao atualizar CNH:", error);
+        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+    }
+});
+
+// Rota para atualizar CRLV do motorista
+router.put('/:id/crlv', CheckTokenM, upload.single('crlv'), async (req, res) => {
+    const id = req.params.id;
+
+    if (!mongoose.isValidObjectId(id)) {
+        return res.status(400).json({ msg: 'ID inválido!' });
+    }
+
+    // Verifica se foi enviado um arquivo
+    if (!req.file) {
+        return res.status(400).json({ msg: 'Arquivo de CRLV não enviado!' });
+    }
+
+    try {
+        const motorista = await UserMotorista.findById(id);
+        if (!motorista) {
+            return res.status(404).json({ msg: 'Motorista não encontrado!' });
+        }
+
+        // Remove o arquivo antigo de CRLV se existir
+        if (motorista.crlv) {
+            // Lógica para deletar o arquivo antigo, se necessário
+        }
+
+        // Atualiza o caminho do CRLV no banco de dados
+        motorista.crlv = req.file.path;
+
+        // Salva as alterações no banco de dados
+        await motorista.save();
+
+        res.json({ msg: 'CRLV atualizado com sucesso!', motorista });
+    } catch (error) {
+        console.error("Erro ao atualizar CRLV:", error);
+        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+    }
+});
+
+
 
 // Registro de usuário
 router.post('/register', upload.fields([
