@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const AgendamentoMotorista = require('../model/AgendamentoMotorista');
 
-// Rota para obter dados do agendamento
+// Rota para  dados do agendamento
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -22,7 +22,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Rota para obter a data do agendamento
+// Rota para  data do agendamento
 router.get('/:id/data', async (req, res) => {
     const id = req.params.id;
 
@@ -41,7 +41,7 @@ router.get('/:id/data', async (req, res) => {
     }
 });
 
-// Rota para obter a hora do agendamento
+// Rota para  hora do agendamento
 router.get('/:id/hora', async (req, res) => {
     const id = req.params.id;
 
@@ -60,7 +60,7 @@ router.get('/:id/hora', async (req, res) => {
     }
 });
 
-// Rota para obter as vagas do agendamento
+// Rota para vagas do agendamento
 router.get('/:id/vagas', async (req, res) => {
     const id = req.params.id;
 

@@ -6,7 +6,7 @@ const path = require('path');
 const PerfilUser = require('../model/PerfilUser');
 const upload = require('../config/multer');
 
-// Rota para obter dados do perfil
+// Rota para dados do perfil
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -61,7 +61,7 @@ router.put('/:id', upload.single('file'), async (req, res) => {
             return res.status(404).json({ msg: 'Perfil não encontrado!' });
         }
 
-        // Deleta a imagem antiga se um novo arquivo for enviado
+        // Deleta imagem antiga caso um novo arquivo for enviado 
         if (req.file) {
             const oldPath = perfil.src;
             perfil.src = req.file.path;

@@ -3,12 +3,13 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const upload = require('../config/multer'); // Importando o multer configurado
-const UserMotorista = require('../model/UserMotorista'); // Importando o modelo de motorista
-const CheckTokenM = require('../middleware/checkToken'); // Middleware para verificar token JWT
+const fs = require('fs');
+const upload = require('../config/multer'); 
+const UserMotorista = require('../model/UserMotorista'); 
+const CheckTokenM = require('../middleware/checkToken'); 
 
 
-// Rota para obter dados do usuário
+// Rota para  dados do usuário
 router.get('/:id', CheckTokenM, async (req, res) => {
     const id = req.params.id;
 
@@ -27,7 +28,7 @@ router.get('/:id', CheckTokenM, async (req, res) => {
     }
 });
 
-// Rota para obter o nome do usuário
+// Rota para  nome do usuário
 router.get('/:id/nome', CheckTokenM, async (req, res) => {
     const id = req.params.id;
 
@@ -46,7 +47,7 @@ router.get('/:id/nome', CheckTokenM, async (req, res) => {
     }
 });
 
-// Rota para obter a empresa do usuário
+// Rota para  empresa do usuário
 router.get('/:id/empresa', CheckTokenM, async (req, res) => {
     const id = req.params.id;
 
@@ -65,7 +66,7 @@ router.get('/:id/empresa', CheckTokenM, async (req, res) => {
     }
 });
 
-// Rota para obter o setor do usuário
+// Rota para setor do usuário
 router.get('/:id/setor', CheckTokenM, async (req, res) => {
     const id = req.params.id;
 
@@ -84,7 +85,7 @@ router.get('/:id/setor', CheckTokenM, async (req, res) => {
     }
 });
 
-// Rota para obter a placa, cor e modelo do veículo do usuário
+// Rota para  placa, cor e modelo do veículo do usuário
 router.get('/:id/infos', CheckTokenM, async (req, res) => {
     const id = req.params.id;
 
@@ -116,7 +117,7 @@ router.put('/:id/cnh', CheckTokenM, upload.single('cnh'), async (req, res) => {
         return res.status(400).json({ msg: 'ID inválido!' });
     }
 
-    // Verifica se foi enviado um arquivo
+    // Verificação de envio
     if (!req.file) {
         return res.status(400).json({ msg: 'Arquivo de CNH não enviado!' });
     }
@@ -127,9 +128,13 @@ router.put('/:id/cnh', CheckTokenM, upload.single('cnh'), async (req, res) => {
             return res.status(404).json({ msg: 'Motorista não encontrado!' });
         }
 
-        // Remove o arquivo antigo de CNH se existir
+        // Remove o arquivo antigo de CNH, se existir.
         if (motorista.cnh) {
-            // Lógica para deletar o arquivo antigo, se necessário
+            fs.unlink(motorista.cnh, (err) => {
+                if (err) {
+                    console.error("Erro ao deletar o arquivo antigo de CNH:", err);
+                }
+            });
         }
 
         // Atualiza o caminho da CNH no banco de dados
@@ -144,6 +149,7 @@ router.put('/:id/cnh', CheckTokenM, upload.single('cnh'), async (req, res) => {
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
+
 
 // Rota para atualizar CRLV do motorista
 router.put('/:id/crlv', CheckTokenM, upload.single('crlv'), async (req, res) => {
@@ -164,9 +170,13 @@ router.put('/:id/crlv', CheckTokenM, upload.single('crlv'), async (req, res) => 
             return res.status(404).json({ msg: 'Motorista não encontrado!' });
         }
 
-        // Remove o arquivo antigo de CRLV se existir
+        // Remove o arquivo antigo de CRLV, se existir.
         if (motorista.crlv) {
-            // Lógica para deletar o arquivo antigo, se necessário
+            fs.unlink(motorista.crlv, (err) => {
+                if (err) {
+                    console.error("Erro ao deletar o arquivo antigo de CRLV:", err);
+                }
+            });
         }
 
         // Atualiza o caminho do CRLV no banco de dados
@@ -193,7 +203,7 @@ router.post('/register', upload.fields([
         nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha, placa, cor, modelo,
     } = req.body;
 
-    // Validações (adaptar conforme necessário)
+    // Validações 
     if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha || !placa || !cor || !modelo) {
         return res.status(422).json({ msg: 'Todos os campos são obrigatórios!' });
     }
@@ -212,7 +222,7 @@ router.post('/register', upload.fields([
         return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
     }
 
-    // Transformando o caminho do arquivo em URL
+    // Transformando arquivo em URL
     const cnhPath = req.files['cnh'][0].path;
     const crlvPath = req.files['crlv'][0].path;
 

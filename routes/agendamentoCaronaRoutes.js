@@ -41,7 +41,7 @@ router.get('/:id/data', async (req, res) => {
         // Log para verificar o valor de agendamento.data
         console.log('Data do agendamento:', agendamento.data);
 
-        // Retorna diretamente o campo 'data' do documento encontrado
+        // Retorna campo 'data' do documento encontrado
         res.json({ data: agendamento.data });
     } catch (error) {
         console.error('Erro ao buscar data do agendamento:', error);
