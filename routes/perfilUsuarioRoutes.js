@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 const PerfilUser = require('../model/PerfilUser');
+const upload = require('../config/multer');
 
 // Rota para obter dados do perfil
 router.get('/:id', async (req, res) => {
@@ -18,34 +21,34 @@ router.get('/:id', async (req, res) => {
         }
         res.json(perfil);
     } catch (error) {
+        console.error(`[ERROR] Erro ao obter perfil: ${error}`);
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
 
 // Registro de perfil
-router.post('/register', async (req, res) => {
-    const { foto } = req.body;
-
-    if (!foto) {
-        return res.status(400).json({ msg: 'Campo obrigatório!' });
+router.post('/register', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ msg: 'Arquivo não enviado!' });
     }
 
     const novoPerfil = new PerfilUser({
-        foto,
+        src: req.file.path,
     });
 
     try {
         await novoPerfil.save();
-        res.status(201).json({ msg: 'Perfil criado com sucesso!' });
+        console.log(`[DEBUG] Novo perfil criado com caminho: ${req.file.path}`);
+        res.status(201).json({ msg: 'Perfil criado com sucesso!', perfil: novoPerfil });
     } catch (error) {
+        console.error(`[ERROR] Erro ao salvar perfil: ${error}`);
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
 
 // Rota para atualizar perfil
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('file'), async (req, res) => {
     const id = req.params.id;
-    const { foto } = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
         return res.status(400).json({ msg: 'ID inválido!' });
@@ -58,14 +61,25 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ msg: 'Perfil não encontrado!' });
         }
 
-        // Atualiza os campos do perfil
-        perfil.foto = foto;
+        // Deleta a imagem antiga se um novo arquivo for enviado
+        if (req.file) {
+            const oldPath = perfil.src;
+            perfil.src = req.file.path;
+            fs.unlink(oldPath, (err) => {
+                if (err) {
+                    console.error(`[ERROR] Erro ao deletar arquivo antigo: ${err}`);
+                } else {
+                    console.log(`[DEBUG] Arquivo antigo deletado: ${oldPath}`);
+                }
+            });
+            console.log(`[DEBUG] Perfil atualizado com novo caminho: ${req.file.path}`);
+        }
 
         await perfil.save();
 
         res.status(200).json({ msg: 'Perfil atualizado com sucesso!', perfil });
     } catch (error) {
-        console.error(error);
+        console.error(`[ERROR] Erro ao atualizar perfil: ${error}`);
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
