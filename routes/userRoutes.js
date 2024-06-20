@@ -131,20 +131,51 @@ router.put('/:id/docFoto', upload.single('docFoto'), async (req, res) => {
 
 // Rota para registro de usuário
 router.post('/register', upload.single('docFoto'), async (req, res) => {
+    const {
+      nome, email, confirmarEmail, empresa, matricula, logradouro, numero, bairro, cidade, uf, senha, confirmSenha
+    } = req.body;
+  
+    // Validações
+    if (!nome || !email || !empresa || !matricula || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmSenha || !req.file) {
+      return res.status(422).json({ msg: 'Por favor, preencha todos os campos e envie a foto do documento.' });
+    }
+  
+    if (email !== confirmarEmail) {
+      return res.status(422).json({ msg: 'Os emails não coincidem!' });
+    }
+  
+    if (senha !== confirmSenha) {
+      return res.status(422).json({ msg: 'As senhas não coincidem!' });
+    }
+  
     try {
-      // Dados do formulário
-      const { nome, email, empresa, matricula, logradouro, numero, bairro, cidade, uf, senha, confirmSenha } = req.body;
+      // Processo adicional para salvar no banco de dados
+      const filePath = req.file.path; // Caminho do arquivo temporário da foto do documento
   
-      // Verifica se todos os campos obrigatórios estão presentes
-      if (!nome || !email || !empresa || !matricula || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmSenha || !req.file) {
-        return res.status(400).json({ msg: 'Por favor, preencha todos os campos e envie a foto do documento.' });
-      }
+      // Exemplo de hasheamento de senha com bcrypt
+      const salt = await bcrypt.genSalt(10); // Geração do salt
+      const hashedPassword = await bcrypt.hash(senha, salt); // Hash da senha
   
-      // Processo adicional para salvar no MongoDB ou outro armazenamento
-      const filePath = req.file.path;
-      // Lógica para salvar no banco de dados ou processamento adicional
+      // Criação de um novo objeto de usuário com os dados recebidos
+      const newUser = new User({
+        nome,
+        email,
+        empresa,
+        matricula,
+        logradouro,
+        numero,
+        bairro,
+        cidade,
+        uf,
+        senha: hashedPassword, // Salva a senha hasheada
+        docFoto: filePath // Salva o caminho do arquivo temporário da foto do documento
+      });
   
-      res.status(200).json({ msg: 'Usuário registrado com sucesso!', filePath });
+      // Salva o usuário no banco de dados
+      await newUser.save();
+  
+      // Resposta de sucesso
+      res.status(201).json({ msg: 'Usuário registrado com sucesso!', filePath });
     } catch (err) {
       console.error('Erro no registro:', err);
       res.status(500).json({ msg: 'Erro ao processar o registro' });
