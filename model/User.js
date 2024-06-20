@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
     uf: { type: String, required: true },
     senha: { type: String, required: true },
     confirmarSenha: { type: String },
-    docFoto: { type: String } // Campo para armazenar a URL da foto do documento
+    docFoto: { type: String , required: true} // Campo para armazenar a URL da foto do documento
 });
 
 const User = mongoose.model('User', UserSchema);
