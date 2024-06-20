@@ -101,7 +101,7 @@ router.post('/register', async (req, res) => {
         cidade,
         uf,
         senha,
-        confirmarSenha,
+        confirmarSenha
     } = req.body;
 
     // Validações
@@ -141,7 +141,6 @@ router.post('/register', async (req, res) => {
             cidade,
             uf,
             senha: hashedPassword,
-      
         });
 
         // Salva o novo usuário no banco de dados
@@ -154,6 +153,7 @@ router.post('/register', async (req, res) => {
         res.status(500).json({ msg: 'Erro ao processar o registro' });
     }
 });
+
 
 // Rota para login do usuário
 router.post('/login', async (req, res) => {
