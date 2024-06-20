@@ -87,7 +87,7 @@ router.get('/:id/setor', checkToken, async (req, res) => {
 });
 
 // Rota para registro de usuário
-router.post('/rideshare/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     const {
         nome,
         email,
@@ -105,44 +105,56 @@ router.post('/rideshare/register', async (req, res) => {
         lembrarSenha
     } = req.body;
 
-    // Validações...
-
-    // Check if user exists
-    const userExists = await User.findOne({ matricula: matricula });
-
-    if (userExists) {
-        return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
+    // Validações
+    if (!nome || !email || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha) {
+        return res.status(422).json({ msg: 'Por favor, preencha todos os campos.' });
     }
 
-    // Create password
-    const salt = await bcrypt.genSalt(12);
-    const passwordHash = await bcrypt.hash(senha, salt);
+    if (email !== confirmarEmail) {
+        return res.status(422).json({ msg: 'Os emails não coincidem!' });
+    }
 
-    // Create User
-    const user = new User({
-        nome,
-        email,
-        empresa,
-        matricula,
-        setor,
-        logradouro,
-        numero,
-        bairro,
-        cidade,
-        uf,
-        senha: passwordHash,
-    });
+    if (senha !== confirmarSenha) {
+        return res.status(422).json({ msg: 'As senhas não coincidem!' });
+    }
 
+    // Verifica se a matrícula já está cadastrada
     try {
-        await user.save();
+        const userExists = await User.findOne({ matricula });
+        if (userExists) {
+            return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
+        }
 
-        res.status(201).json({ msg: 'Usuário criado com sucesso!' });
+        // Hash da senha com bcrypt
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(senha, salt);
+
+        // Criação de um novo usuário
+        const newUser = new User({
+            nome,
+            email,
+            empresa,
+            matricula,
+            setor,
+            logradouro,
+            numero,
+            bairro,
+            cidade,
+            uf,
+            senha: hashedPassword,
+            lembrarSenha
+        });
+
+        // Salva o novo usuário no banco de dados
+        await newUser.save();
+
+        // Resposta de sucesso
+        res.status(201).json({ msg: 'Usuário registrado com sucesso!' });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+        console.error('Erro no registro:', error);
+        res.status(500).json({ msg: 'Erro ao processar o registro' });
     }
 });
-
 
 
 // Rota para login do usuário
