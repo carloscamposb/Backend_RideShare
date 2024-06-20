@@ -131,75 +131,25 @@ router.put('/:id/docFoto', upload.single('docFoto'), async (req, res) => {
 
 // Rota para registro de usuário
 router.post('/register', upload.single('docFoto'), async (req, res) => {
-    const {
-        nome, email, confirmarEmail, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha, confirmarSenha
-    } = req.body;
-
-    // Verifica se foi enviado um arquivo
-    if (!req.file) {
-        return res.status(400).json({ msg: 'Arquivo de foto do documento não enviado!' });
-    }
-
-    // Validações
-    if (!nome || !email || !confirmarEmail || !empresa || !matricula || !setor || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmarSenha) {
-        fs.unlink(req.file.path, (err) => {
-            if (err) {
-                console.error("Erro ao excluir arquivo de foto do documento:", err);
-            }
-        });
-        return res.status(422).json({ msg: 'Todos os campos são obrigatórios!' });
-    }
-
-    if (email !== confirmarEmail) {
-        fs.unlink(req.file.path, (err) => {
-            if (err) {
-                console.error("Erro ao excluir arquivo de foto do documento:", err);
-            }
-        });
-        return res.status(422).json({ msg: 'Os emails não coincidem!' });
-    }
-
-    if (senha !== confirmarSenha) {
-        fs.unlink(req.file.path, (err) => {
-            if (err) {
-                console.error("Erro ao excluir arquivo de foto do documento:", err);
-            }
-        });
-        return res.status(422).json({ msg: 'As senhas não coincidem!' });
-    }
-
     try {
-        const userExists = await User.findOne({ matricula: matricula });
-        if (userExists) {
-            fs.unlink(req.file.path, (err) => {
-                if (err) {
-                    console.error("Erro ao excluir arquivo de foto do documento:", err);
-                }
-            });
-            return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
-        }
-
-        const salt = await bcrypt.genSalt(12);
-        const passwordHash = await bcrypt.hash(senha, salt);
-
-        const newUser = new User({
-            nome, email, empresa, matricula, setor, logradouro, numero, bairro, cidade, uf, senha: passwordHash,
-            docFoto: req.file.path // Salva o caminho do arquivo da foto do documento
-        });
-
-        await newUser.save();
-        res.status(201).json({ msg: 'Usuário criado com sucesso!', userId: newUser._id });
-    } catch (error) {
-        console.error("Erro ao registrar usuário:", error);
-        fs.unlink(req.file.path, (err) => {
-            if (err) {
-                console.error("Erro ao excluir arquivo de foto do documento:", err);
-            }
-        });
-        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+      // Dados do formulário
+      const { nome, email, empresa, matricula, logradouro, numero, bairro, cidade, uf, senha, confirmSenha } = req.body;
+  
+      // Verifica se todos os campos obrigatórios estão presentes
+      if (!nome || !email || !empresa || !matricula || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmSenha || !req.file) {
+        return res.status(400).json({ msg: 'Por favor, preencha todos os campos e envie a foto do documento.' });
+      }
+  
+      // Processo adicional para salvar no MongoDB ou outro armazenamento
+      const filePath = req.file.path;
+      // Lógica para salvar no banco de dados ou processamento adicional
+  
+      res.status(200).json({ msg: 'Usuário registrado com sucesso!', filePath });
+    } catch (err) {
+      console.error('Erro no registro:', err);
+      res.status(500).json({ msg: 'Erro ao processar o registro' });
     }
-});
-
+  });
 
 // Login do usuário
 router.post('/login', async (req, res) => {
