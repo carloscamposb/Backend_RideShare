@@ -87,7 +87,7 @@ router.get('/:id/setor', checkToken, async (req, res) => {
 });
 
 // Rota para registro de usuário
-route.post('/rideshare/register', async (req, res) => {
+router.post('/register', async (req, res) => {
     const {
         nome,
         email,

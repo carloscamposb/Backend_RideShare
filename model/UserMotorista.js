@@ -17,8 +17,7 @@ const UserMotoristaSchema = new mongoose.Schema({
     placa: { type: String, required: true },
     cor: { type: String, required: true },
     modelo: { type: String, required: true },
-    cnh: { type: String, required: true },  //campo para armazenar URL da foto 
-    crlv: { type: String, required: true }, //campo para armazenar URL da foto
+
 });
 
 const UserMotorista = mongoose.model('UserMotorista', UserMotoristaSchema);
