@@ -3,11 +3,10 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const upload = require('../config/multer');
 const User = require('../model/User');
 const checkToken = require('../middleware/checkToken');
 
-// Rota para obter dados do usuário
+// Rota para obter dados do usuário por ID
 router.get('/:id', checkToken, async (req, res) => {
     const id = req.params.id;
 
@@ -27,7 +26,7 @@ router.get('/:id', checkToken, async (req, res) => {
     }
 });
 
-// Rota para obter o nome do usuário
+// Rota para obter o nome do usuário por ID
 router.get('/:id/nome', checkToken, async (req, res) => {
     const id = req.params.id;
 
@@ -47,7 +46,7 @@ router.get('/:id/nome', checkToken, async (req, res) => {
     }
 });
 
-// Rota para obter a empresa do usuário
+// Rota para obter a empresa do usuário por ID
 router.get('/:id/empresa', checkToken, async (req, res) => {
     const id = req.params.id;
 
@@ -67,7 +66,7 @@ router.get('/:id/empresa', checkToken, async (req, res) => {
     }
 });
 
-// Rota para obter o setor do usuário
+// Rota para obter o setor do usuário por ID
 router.get('/:id/setor', checkToken, async (req, res) => {
     const id = req.params.id;
 
@@ -87,102 +86,66 @@ router.get('/:id/setor', checkToken, async (req, res) => {
     }
 });
 
-
-
-// Rota para atualizar a foto do documento
-router.put('/:id/docFoto', upload.single('docFoto'), async (req, res) => {
-    const id = req.params.id;
-
-    if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({ msg: 'ID inválido!' });
-    }
-
-    // Verifica se foi enviado um arquivo
-    if (!req.file) {
-        return res.status(400).json({ msg: 'Arquivo de foto do documento não enviado!' });
-    }
-
-    try {
-        const user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json({ msg: 'Usuário não encontrado!' });
-        }
-
-        // Remove o arquivo antigo se existir
-        if (user.docFoto) {
-            fs.unlink(user.docFoto)
-                .catch(err => console.error("Erro ao excluir arquivo de foto do documento antigo:", err));
-        }
-
-        // Atualiza o caminho da foto do documento
-        user.docFoto = req.file.path;
-
-        // Salva as alterações no banco de dados
-        await user.save();
-
-        res.json({ msg: 'Foto do documento atualizada com sucesso!', userId: user._id });
-    } catch (error) {
-        console.error("Erro ao atualizar foto do documento:", error);
-        fs.unlink(req.file.path)
-            .catch(err => console.error("Erro ao excluir arquivo de foto do documento:", err));
-        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
-    }
-});
-
 // Rota para registro de usuário
-router.post('/register', upload.single('docFoto'), async (req, res) => {
+router.post('/rideshare/register', async (req, res) => {
     const {
-      nome, email, confirmarEmail, empresa, matricula, logradouro, numero, bairro, cidade, uf, senha, confirmSenha
-    } = req.body;
-  
-    // Validações
-    if (!nome || !email || !empresa || !matricula || !logradouro || !numero || !bairro || !cidade || !uf || !senha || !confirmSenha || !req.file) {
-      return res.status(422).json({ msg: 'Por favor, preencha todos os campos e envie a foto do documento.' });
-    }
-  
-    if (email !== confirmarEmail) {
-      return res.status(422).json({ msg: 'Os emails não coincidem!' });
-    }
-  
-    if (senha !== confirmSenha) {
-      return res.status(422).json({ msg: 'As senhas não coincidem!' });
-    }
-  
-    try {
-      // Processo adicional para salvar no banco de dados
-      const filePath = req.file.path; // Caminho do arquivo temporário da foto do documento
-  
-      // Exemplo de hasheamento de senha com bcrypt
-      const salt = await bcrypt.genSalt(10); // Geração do salt
-      const hashedPassword = await bcrypt.hash(senha, salt); // Hash da senha
-  
-      // Criação de um novo objeto de usuário com os dados recebidos
-      const newUser = new User({
         nome,
         email,
+        confirmarEmail,
         empresa,
         matricula,
+        setor,
         logradouro,
         numero,
         bairro,
         cidade,
         uf,
-        senha: hashedPassword, // Salva a senha hasheada
-        docFoto: filePath // Salva o caminho do arquivo temporário da foto do documento
-      });
-  
-      // Salva o usuário no banco de dados
-      await newUser.save();
-  
-      // Resposta de sucesso
-      res.status(201).json({ msg: 'Usuário registrado com sucesso!', filePath });
-    } catch (err) {
-      console.error('Erro no registro:', err);
-      res.status(500).json({ msg: 'Erro ao processar o registro' });
-    }
-  });
+        senha,
+        confirmarSenha,
+        lembrarSenha
+    } = req.body;
 
-// Login do usuário
+    // Validações...
+
+    // Check if user exists
+    const userExists = await User.findOne({ matricula: matricula });
+
+    if (userExists) {
+        return res.status(422).json({ msg: 'Essa matrícula já está cadastrada' });
+    }
+
+    // Create password
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(senha, salt);
+
+    // Create User
+    const user = new User({
+        nome,
+        email,
+        empresa,
+        matricula,
+        setor,
+        logradouro,
+        numero,
+        bairro,
+        cidade,
+        uf,
+        senha: passwordHash,
+    });
+
+    try {
+        await user.save();
+
+        res.status(201).json({ msg: 'Usuário criado com sucesso!' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+    }
+});
+
+
+
+// Rota para login do usuário
 router.post('/login', async (req, res) => {
     const { matricula, senha } = req.body;
 
