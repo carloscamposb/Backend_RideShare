@@ -27,7 +27,9 @@ Para a acesso ao Front-end da aplicação: https://github.com/carloscamposb/Ride
 * **Banco de Dados NoSQL MongoDB:** Os dados de motorista e carona foram armazenados no AtlasDB um serviço em nuvem do MongoDB. O contato do banco de dados com o Front-end foi realizado pelo Nodejs através de rotas  
 
 
-* **Backend Node.js:** O backend contruido com rotas para perfil, agendamento motorista, agendamento carona,  usuário carona e usuário motorista. As rotas foram feitas para adicionar informações, editar informações, fazer consultas em lista ou indivídual e deletar  Todas as rotas foram testadas no Postman e em seguida adicionadas no Github para ser utilizado na nuvem pelo render
+* **Backend Node.js:** O backend construido com rotas para perfil, agendamento motorista, agendamento carona,  usuário carona e usuário motorista. As rotas foram feitas como CRUD ao adicionar informações, editar informações, fazer consultas em lista ou indivídual e deletar.  Todas as rotas foram testadas no Postman via local inicialmente e em seguida adicionadas no Github para serem utilizadas pelo Render (Serviço em nuvem)
+
+> Dessa forma nossa aplicação está moderna e alinhada com o mercado com todos os serviços desacoplados em diferentes repositórios e conectados via código
 
 
 ### Projeto entregue em: 21/06/24 📆 
