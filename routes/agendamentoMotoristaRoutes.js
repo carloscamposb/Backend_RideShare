@@ -110,10 +110,10 @@ router.put('/:id', async (req, res) => {
         return res.status(400).json({ msg: 'ID inválido!' });
     }
 
-    const { destino, data, hora, vagas } = req.body;
+    const { empresa, data, hora, vagas } = req.body;
 
      // Verifica se todos os campos obrigatórios estão presentes
-     if (!destino || !data || !hora || !vagas) {
+     if (!empresa || !data || !hora || !vagas) {
         return res.status(400).json({ msg: 'Todos os campos são obrigatórios!' });
     }
 
@@ -125,7 +125,7 @@ router.put('/:id', async (req, res) => {
         }
 
         // Atualiza os campos do agendamento
-        agendamentoMotorista.destino = req.body.destino;
+        agendamentoMotorista.empresa = req.body.empresa;
         agendamentoMotorista.data = req.body.data;
         agendamentoMotorista.hora = req.body.hora;
         agendamentoMotorista.vagas = req.body.vagas;
