@@ -106,7 +106,8 @@ router.get('/:id/infos', CheckTokenM, async (req, res) => {
 });
 
 
-router.get('/all', async (req, res) => {
+// Rota para obter a lista de motoristas com nome, placa, cor e modelo
+router.get('/all', CheckTokenM, async (req, res) => {
     try {
         const motoristas = await UserMotorista.find({}, 'nome placa cor modelo');
         res.json(motoristas);
@@ -114,7 +115,6 @@ router.get('/all', async (req, res) => {
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
 });
-
 
 
 // Registro de motorista
