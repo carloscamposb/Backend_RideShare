@@ -81,14 +81,14 @@ router.get('/:id/vagas', async (req, res) => {
 
 // Registro de agendamento
 router.post('/register', async (req, res) => {
-    const { destino, data, hora, vagas } = req.body;
+    const { empresa, data, hora, vagas } = req.body;
 
-    if (!destino || !data || !hora || vagas == null) {
+    if (!empresa || !data || !hora || vagas == null) {
         return res.status(400).json({ msg: 'Todos os campos são obrigatórios!' });
     }
 
     const agendamentoMotorista = new AgendamentoMotorista({
-        destino,
+       empresa,
         data,
         hora,
         vagas,

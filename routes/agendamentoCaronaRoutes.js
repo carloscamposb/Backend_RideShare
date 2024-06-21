@@ -69,33 +69,38 @@ router.get('/:id/hora', async (req, res) => {
     }
 });
 
+
 // Registro de agendamento
 router.post('/register', async (req, res) => {
     const {
-        partida,
-        destino,
-        data,
-        hora,
+      partida,
+      empresa,
+      data,
+      hora,
+  
     } = req.body;
-
-    if (!partida || !destino || !data || !hora) {
-        return res.status(400).json({ msg: 'Todos os campos são obrigatórios!' });
+  
+    console.log('Dados recebidos no backend:', req.body); // Adicione esta linha para verificar os dados recebidos
+  
+    if (!partida || !empresa || !data || !hora || !empresa) {
+      return res.status(400).json({ msg: 'Todos os campos são obrigatórios!' });
     }
-
+  
     const agendamento = new Agendamento({
-        partida,
-        destino,
-        data,
-        hora,
+      partida,
+      empresa,
+      data,
+      hora,
+      
     });
-
+  
     try {
-        await agendamento.save();
-        res.status(201).json({ msg: 'Agendamento criado com sucesso!' });
+      await agendamento.save();
+      res.status(201).json({ msg: 'Agendamento criado com sucesso!' });
     } catch (error) {
-        res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
+      res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
     }
-});
+  });
 
 
 
