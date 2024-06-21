@@ -4,7 +4,7 @@ const AgendamentoMotoristaSchema = new mongoose.Schema({
     empresa: { type: String, required: true },
     data: { type: String, required: true },
     hora: { type: String, required: true },
-    vagas: { type: Number, required: true },
+    vagas: { type: String, required: true },
 });
 
 const AgendamentoMotorista = mongoose.model('AgendamentoMotorista', AgendamentoMotoristaSchema);

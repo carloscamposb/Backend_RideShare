@@ -17,6 +17,7 @@ const UserMotoristaSchema = new mongoose.Schema({
     placa: { type: String, required: true },
     cor: { type: String, required: true },
     modelo: { type: String, required: true },
+   
 
 });
 
