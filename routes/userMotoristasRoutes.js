@@ -106,10 +106,13 @@ router.get('/:id/infos', CheckTokenM, async (req, res) => {
 });
 
 
-// Rota para obter a lista de motoristas com nome, placa, cor e modelo
-router.get('/all', CheckTokenM, async (req, res) => {
+// Rota para obter a lista de todos os motoristas com nome, placa, cor e modelo
+router.get('/infos/all', CheckTokenM, async (req, res) => {
     try {
         const motoristas = await UserMotorista.find({}, 'nome placa cor modelo');
+        if (!motoristas || motoristas.length === 0) {
+            return res.status(404).json({ msg: 'Nenhum motorista encontrado!' });
+        }
         res.json(motoristas);
     } catch (error) {
         res.status(500).json({ msg: 'Erro no servidor! Tente novamente mais tarde' });
